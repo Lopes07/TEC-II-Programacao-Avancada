@@ -1,4 +1,4 @@
-# TEC II - Programação Avançada (UFPel)
+# TEC II - Programação Avançada 
 
 ## Tabela de Trabalhos
 

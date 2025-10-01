@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Trabalho: Diagrama de Voronoi e Triangulação de Delaunay</title>
+    <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background-color: #f0f0f0; margin: 0; padding: 20px; }
+        canvas { border: 2px solid black; background-color: white; cursor: crosshair; }
+        #controles { margin: 15px 0; }
+        button { font-size: 16px; padding: 10px 20px; cursor: pointer; margin: 0 5px; }
+        #info { font-size: 1.1em; font-weight: bold; color: #333; margin-top: 10px; }
+        .legenda { display: flex; justify-content: center; gap: 20px; margin-top: 10px; }
+        .item-legenda { display: flex; align-items: center; }
+        .cor-box { width: 20px; height: 20px; border: 1px solid #ccc; margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>Diagrama de Voronoi e Triangulação de Delaunay</h1>
+    <p>Clique no canvas para adicionar pontos e ver o diagrama ser atualizado automaticamente.</p>
+    
+    <canvas id="voronoiCanvas" width="800" height="600"></canvas>
+    
+    <div id="controles">
+        <button onclick="clearPoints()">Limpar Pontos</button>
+        <div class="legenda">
+            <div class="item-legenda"><span class="cor-box" style="background-color: blue;"></span>Triangulação de Delaunay</div>
+            <div class="item-legenda"><span class="cor-box" style="background-color: red;"></span>Diagrama de Voronoi</div>
+            <div class="item-legenda"><span class="cor-box" style="background-color: black;"></span>Pontos (Sites)</div>
+        </div>
+        <p id="info">Número de pontos: 0</p>
+    </div>
+
+<script>
+    const canvas = document.getElementById('voronoiCanvas');
+    const ctx = canvas.getContext('2d');
+    const infoElement = document.getElementById('info');
+
+    let points = []; // Armazena os pontos (sites) adicionados pelo usuário
+
+    // --- FUNÇÕES DE DESENHO E CÁLCULO ---
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
+
+        if (points.length < 2) {
+            drawPoints(); // Desenha apenas os pontos se não há diagrama para mostrar
+            return;
+        }
+
+        // Calcula a Triangulação de Delaunay e o Diagrama de Voronoi
+        // A biblioteca d3-delaunay já faz o cálculo para ambos
+        const delaunay = d3.Delaunay.from(points);
+        const voronoi = delaunay.voronoi([0, 0, canvas.width, canvas.height]); // Define a área do canvas
+
+        // 1. Desenha a Triangulação de Delaunay (gráfica dual)
+        ctx.beginPath();
+        delaunay.render(ctx); // Desenha os triângulos
+        ctx.strokeStyle = "blue";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // 2. Desenha o Diagrama de Voronoi
+        ctx.beginPath();
+        voronoi.render(ctx); // Desenha as células de Voronoi
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // 3. Desenha os Pontos (Sites)
+        drawPoints();
+    }
+
+    function drawPoints() {
+        for (const p of points) {
+            ctx.beginPath();
+            ctx.arc(p[0], p[1], 4, 0, 2 * Math.PI); // Desenha um círculo para cada ponto
+            ctx.fillStyle = "black";
+            ctx.fill();
+        }
+    }
+
+    // --- MANIPULAÇÃO DE EVENTOS ---
+
+    canvas.addEventListener('click', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        points.push([x, y]); // Adiciona o novo ponto
+        infoElement.textContent = `Número de pontos: ${points.length}`;
+        draw(); // Redesenha tudo com o novo ponto
+    });
+
+    function clearPoints() {
+        points = []; // Limpa o array de pontos
+        infoElement.textContent = `Número de pontos: ${points.length}`;
+        draw(); // Redesenha (mostra um canvas vazio)
+    }
+
+    // --- INÍCIO ---
+    draw(); // Desenha a tela inicial (vazia ou com pontos iniciais, se houver)
+
+</script>
+
+</body>
+</html>
